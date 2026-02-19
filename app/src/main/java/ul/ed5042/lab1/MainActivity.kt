@@ -68,7 +68,7 @@ fun QcaCalculationLayout(modifier: Modifier = Modifier) {
             text = "QCA should appear here",
             style = MaterialTheme.typography.displayMedium
         )
-
+main
     }
 }
 
