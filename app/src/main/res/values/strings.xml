@@ -5,5 +5,5 @@
     <string name="module_weight">ECTS</string>
     <string name="enter_data">Enter modules, grades and the associated weight (in ECTS)\n</string>
     <string name="qca_calculator">QCA Calculator</string>
-    <string name="your_qca">Your QCA:</string>
+    <string name="your_qca">Your QCA:%s</string>
 </resources>
