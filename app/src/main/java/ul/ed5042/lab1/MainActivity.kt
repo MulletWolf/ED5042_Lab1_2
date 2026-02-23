@@ -27,6 +27,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshots.SnapshotStateList
 
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -52,11 +53,11 @@ class MainActivity : ComponentActivity() {
 }
 
 data class Module(//data class to hold data
-    var defname: String = "Module",
+    var defname: String = "",
 
-    var defGrade: String = "Grade",
-    var defweight: String = "ECTS",
-    //val amount: Double
+    var defGrade: String = "",
+    var defweight: String = "",
+
 )
 
 
@@ -126,8 +127,11 @@ fun QcaCalculationLayout(modifier: Modifier = Modifier) {
 
          )
 
+
       }
         var qca: String
+
+
 
 
         qca=calculateQca(
@@ -135,7 +139,7 @@ fun QcaCalculationLayout(modifier: Modifier = Modifier) {
             modules[1].defGrade,modules[1].defweight.toIntOrNull()?:0,
             modules[2].defGrade,modules[2].defweight.toIntOrNull()?:0,
             modules[3].defGrade,modules[3].defweight.toIntOrNull()?:0,
-            modules[4].defGrade,modules[4].defweight.toIntOrNull()?:0,
+            modules[4].defGrade,modules[4].defweight.toIntOrNull()?:0,modules
         )//returns a string
 
         Text(
@@ -155,23 +159,23 @@ fun QcaCalculationLayout(modifier: Modifier = Modifier) {
 /**
  * Calculates the QPV for each grade
  */
-val calcQPV:(String)->Double={grade->
-    var QPV=when(grade){
-        "A1"->4.0
-        "A2"->3.6
-        "B1"->3.2
-        "B2"->3.0
-        "B3"->2.8
-        "C1"->2.6
-        "C2"->2.4
-       "C3"->2.0
-        "D1"->1.6
-        "D2"->1.2
-        "F"->0.0
-        else->0.0
+val calcQPV:(String)-> String?={ grade->
+    when(grade){
+        "A1"->"4.0"
+        "A2"->"3.6"
+        "B1"->"3.2"
+        "B2"->"3.0"
+        "B3"->"2.8"
+        "C1"->"2.6"
+        "C2"->"2.4"
+       "C3"->"2.0"
+        "D1"->"1.6"
+        "D2"->"1.2"
+        "F"->"0.0"
+        else->null//returns null
 
     }
-    QPV
+
 
 }
 
@@ -182,36 +186,38 @@ fun calculateQca(
     grade2: String, weight2: Int,
     grade3: String, weight3: Int,
     grade4: String, weight4: Int,
-    grade5: String, weight5: Int
+    grade5: String, weight5: Int,
+    modules: SnapshotStateList<Module>
 ): String {
-    
-    //takes in grade and weight
-    //do calculation
 
-    //qca=sum of all qpv*weight/sum of all weights
-    var qpvSum:Double=0.0
+    var gradeArr=arrayOf(grade1,grade2,grade3,grade4,grade5)//array for grades
+    var weightArr=arrayOf(weight1,weight2,weight3,weight4,weight5)//array for weights
+    var moduleRowArr=arrayListOf<Double>()//arraylist of doubles
+    var weightSum =0.00
+    var qpvSum=0.00
+    //loops through each grade in gradeArray
+    gradeArr.forEachIndexed { index,grade->
 
+         var result=calcQPV(gradeArr[index])
+        var modulename=modules[index].defname//gets modulename
+        if(result==null||modulename==""){//handles the case when qpv is null or modulename is empty
+            weightArr[index]=0
 
-    //calculates the qpv for each module
+        }else{//when calcQPV isnt null then
+            //adds result times weight to modouleArray if its not null else it returns 0.0
 
-    var mod1=calcQPV(grade1)*weight1
-    var mod2=calcQPV(grade2)*weight2
-    var mod3=calcQPV(grade3)*weight3
-    var mod4=calcQPV(grade4)*weight4
-    var mod5=calcQPV(grade5)*weight5
+            moduleRowArr.add( result.toDoubleOrNull()?.times(weightArr[index].toDouble())?:0.0)
+            qpvSum+=moduleRowArr[index]//adds each qpv* weight in moduleRowArr to qpvSum
+            weightSum+=weightArr[index]//adds each weight in weightArr to weightSum
 
-    //calculates the total qpv
-    qpvSum=mod1+mod2+mod3+mod4+mod5
+        }
 
-    var weightSum=0
-    //calculates the sum of weights
-    weightSum=weight1+weight2+weight3+weight4+weight5
-    //weightSum.toDouble()
+    }
+
 
     var qca:Double
     //calculates the qca
-    qca=qpvSum/weightSum.toDouble()
-
+    qca=qpvSum/weightSum
 
     qca.toString()//converts qca to string
     var qcaString=String.format("%.2f",qca)//converts qca to 2 decimal places
